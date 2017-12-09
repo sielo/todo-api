@@ -9,7 +9,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/playground\\mongodb-find.js"
+            "program": "${workspaceFolder}/playground\\mongodb-delete.js"
         }
     ]
 }
