@@ -8,8 +8,14 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch server.js",
             "program": "${workspaceFolder}/server\\server.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch mongoose-queries",
+            "program": "${workspaceFolder}/playground\\mongoos-queries.js"
         }
     ]
 }

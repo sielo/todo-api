@@ -1,9 +1,9 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 // PRZYDATNE:  httpstatuses.com
-var { mongoose } = require('./db/mongoose.js');
-var { Todo } = require('./models/todo.js');
-var { User } = require('./models/user.js');
+var { mongoose } = require('./db/mongoose');
+var { Todo } = require('./models/todo');
+var { User } = require('./models/user');
 
 var app = express();
 app.use(bodyParser.json());
