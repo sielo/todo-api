@@ -2,8 +2,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 // PRZYDATNE:  httpstatuses.com
 var { mongoose } = require('./db/mongoose.js');
-var { Todo } = require('./models/Todo.js');
-var { User } = require('./models/User.js');
+var { Todo } = require('./models/todo.js');
+var { User } = require('./models/user.js');
 
 var app = express();
 app.use(bodyParser.json());
@@ -20,7 +20,7 @@ app.post('/todos', (req, res) => {
         (err) => {
             res.status(400).send(err);
         });
-    console.log(JSON.stringify(req.body, null, 2));
+    //console.log(JSON.stringify(req.body, null, 2));
 
 });
 
@@ -30,3 +30,5 @@ app.post('/todos', (req, res) => {
 app.listen(3000, () => {
     console.log('Started on port 3000');
 });
+
+module.exports = {app};
