@@ -5,14 +5,18 @@
 // npm run test-watch
 const expect = require('expect');
 const request = require('supertest');
+const { ObjectID } = require('mongodb');
 
 const { app } = require('./../server');
 const { Todo } = require('./../models/todo');
 
+// UWAGA! Jeśli generujemy ID przy tworzeniu rekordu w node to potem mongodb nie generuje już nowego ID
 const todos = [{
+    _id: new ObjectID(),  // celowo generujemy TUTAJ aby użyć tego "_id" w testach /todos/:id
     text: 'Pierwszy Todo'
 },
 {
+    _id: new ObjectID(),
     text: 'Drugi Todo'
 }
 ];
@@ -78,4 +82,29 @@ describe('GET /todos', () => {
             })
             .end(done);
     });
-});    
+});
+
+
+describe('GET /todos/:id', () => {
+    it('should return todo', (done) => {
+        request(app).get(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo.text).toBe(todos[0].text);
+            })
+            .end(done);
+    });
+
+    it('should return 404 if todo not found', (done) => {
+        var hexId = new ObjectID().toHexString();
+        request(app).get(`/todos/${hexId}`)
+            .expect(404)
+            .end(done);
+    });
+    it('should return 404 if todo for wrong id', (done) => {
+        var id = new ObjectID();
+        request(app).get(`/todos/123`)
+            .expect(404)
+            .end(done);
+    });
+});
