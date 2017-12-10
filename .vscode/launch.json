@@ -9,7 +9,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/playground\\mongodb-update.js"
+            "program": "${workspaceFolder}/server\\server.js"
         }
     ]
 }
