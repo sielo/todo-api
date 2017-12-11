@@ -7,6 +7,9 @@ var { Todo } = require('./models/todo.js');
 var { User } = require('./models/user.js');
 
 var app = express();
+
+const port = process.env.PORT || 3000;  // zmienną środowiskową ustawia Heroku
+
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
@@ -27,11 +30,10 @@ app.post('/todos', (req, res) => {
 
 app.get('/todos', (req, res) => {
     Todo.find().then((todos) => {
-        res.send({
+res.send({
             todos,
             status: '1'
-        });
-    },
+        });    },
         (err) => {
             res.status(400).send(err);
         });
@@ -64,8 +66,14 @@ app.get('/todos/:id', (req, res) => {
 
 
 
-app.listen(3000, () => {
-    console.log('Started on port 3000');
-});
+// poniższy kod uruchamia serwer TYLKO na "localhost" lub "127.0.0.1"
+//  app.listen(3000,'127.0.0.1', () => {
+//     console.log('Started on port 3000');
+// });
 
+// ten kod uruchamia na localhost, 127.0.0.1 i 10.0.0.38 (adres IP lokalny komputera w sieci)
+app.listen(port, () => {
+        console.log(`Started on port ${port}`);
+    });
+    
 module.exports = { app };
