@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
@@ -70,6 +71,39 @@ app.delete('/todos/:id', (req, res) => {
         return res.status(404).send('ID not valid');
     }
     Todo.findByIdAndRemove(id)
+        .then((todo) => {
+            if (!todo) {
+                return res.status(404).send('No ID found');
+            }
+            res.send({
+                todo,
+                status: 1
+            });
+        })
+        .catch((err) => {
+            res.status(400).send(err);
+        });
+
+});
+
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    // poniższe generuje obiekt składający się TYLKO z właściwości podanych w tablicy
+    // nie chcemy aby user modyfikował "completedAt" albo "_id"
+    var body = _.pick(req.body, ['text', 'completed']);
+    //
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send('ID not valid');
+    }
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true})
         .then((todo) => {
             if (!todo) {
                 return res.status(404).send('No ID found');
