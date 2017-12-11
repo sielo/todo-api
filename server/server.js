@@ -30,10 +30,11 @@ app.post('/todos', (req, res) => {
 
 app.get('/todos', (req, res) => {
     Todo.find().then((todos) => {
-res.send({
+        res.send({
             todos,
             status: '1'
-        });    },
+        });
+    },
         (err) => {
             res.status(400).send(err);
         });
@@ -63,6 +64,27 @@ app.get('/todos/:id', (req, res) => {
     }
 );
 
+app.delete('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send('ID not valid');
+    }
+    Todo.findByIdAndRemove(id)
+        .then((todo) => {
+            if (!todo) {
+                return res.status(404).send('No ID found');
+            }
+            res.send({
+                todo,
+                status: 1
+            });
+        })
+        .catch((err) => {
+            res.status(400).send(err);
+        });
+
+});
+
 
 
 
@@ -73,7 +95,7 @@ app.get('/todos/:id', (req, res) => {
 
 // ten kod uruchamia na localhost, 127.0.0.1 i 10.0.0.38 (adres IP lokalny komputera w sieci)
 app.listen(port, () => {
-        console.log(`Started on port ${port}`);
-    });
-    
+    console.log(`Started on port ${port}`);
+});
+
 module.exports = { app };

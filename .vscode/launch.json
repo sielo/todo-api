@@ -14,8 +14,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch mongoose-queries",
-            "program": "${workspaceFolder}/playground\\mongoos-queries.js"
+            "name": "Launch mongoose-remove",
+            "program": "${workspaceFolder}/playground\\mongoos-remove.js"
         }
     ]
 }
