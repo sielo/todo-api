@@ -1,3 +1,4 @@
+require('./config/config.js');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -9,7 +10,7 @@ var { User } = require('./models/user.js');
 
 var app = express();
 
-const port = process.env.PORT || 3000;  // zmienną środowiskową ustawia Heroku
+const port = process.env.PORT;  // zmienną środowiskową ustawia Heroku
 
 app.use(bodyParser.json());
 
@@ -103,7 +104,7 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, {$set: body}, {new: true})
+    Todo.findByIdAndUpdate(id, { $set: body }, { new: true })
         .then((todo) => {
             if (!todo) {
                 return res.status(404).send('No ID found');

@@ -10,7 +10,7 @@ var options = {
     useMongoClient: true
     //promiseLibrary: global.Promise
 }
-mongoose.connect('mongodb://62.181.8.34:27018/TodoApp', options);
+mongoose.connect(process.env.MONGODB_URI, options);
 
 module.exports = {
     mongoose
