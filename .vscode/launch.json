@@ -14,8 +14,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch hashing-jwt",
-            "program": "${workspaceFolder}/playground\\hashing-jwt.js"
+            "name": "Launch hashing-bcrypt",
+            "program": "${workspaceFolder}/playground\\hashing-bcrypt.js"
         }
     ]
 }

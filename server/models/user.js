@@ -2,6 +2,7 @@ const mongoose = require('mongoose');  // http://mongoosejs.com/docs/guide.html
 const valid = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 //
 const SECRETCODE = 'abc123'
 //
@@ -97,6 +98,26 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access': 'auth'
     });
 };
+
+// definicja middleware w mongoose : http://mongoosejs.com/docs/middleware.html
+// Funkcja "pre" dodaje dla wskazanej operacji funkcję wykonywaną PRZED tą operacją
+// argument "next" to funkcja która MUSI być wywołana w kodzie aby doszło do zakończenia tej operacji
+UserSchema.pre('save', function (next) {
+    var user = this;
+    // tutaj będziemy hashować hasło.
+    // musimy jednak najpierw sprawdzić zy sotao zmienione. Bo jeśli NIE to jest ono już "zahashowane".
+    // ale jeśli użytkownik wpisał NOWE hasło to wtedy jest niezahashowane i trzeba je ZAHASHOWAĆ
+    if (user.isModified('password')) {
+        bcrypt.genSalt(10, (err, salt) => {
+            var hash = bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next();
+            });
+        });
+    } else {
+        next();
+    }
+});
 
 var User = mongoose.model('User', UserSchema);
 
