@@ -1,4 +1,4 @@
-// npm i expect mocha nodemon supertest --save-dev
+// npm i expect@1.20.2 mocha nodemon supertest --save-dev
 // zmieniamy w package.json sekcję "scripts" dodając to:
 //    "test": "mocha server/**/*.test.js",
 //    "test-watch": "nodemon --exec \"npm test\""
@@ -9,29 +9,12 @@ const { ObjectID } = require('mongodb');
 
 const { app } = require('./../server');
 const { Todo } = require('./../models/todo');
-
-// UWAGA! Jeśli generujemy ID przy tworzeniu rekordu w node to potem mongodb nie generuje już nowego ID
-const todos = [{
-    _id: new ObjectID(),  // celowo generujemy TUTAJ aby użyć tego "_id" w testach /todos/:id
-    text: 'Pierwszy Todo'
-},
-{
-    _id: new ObjectID(),
-    text: 'Drugi Todo',
-    completed:true,
-    completedAt: 12345
-}
-];
+const { User } = require('./../models/user');
+const { todos, populateTodos, users, populateUsers } = require('./seed/seed.js');
 
 // przed każdym testem "it()" wykonuje się to co w beforeEach
-beforeEach((done) => {
-    Todo.remove({})   // kasuje wszystkie Todo
-        .then(() => {
-            return Todo.insertMany(todos);
-
-        }).then(() => done());
-
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
     it('should create a new todo', (done) => {
@@ -205,5 +188,102 @@ describe('PATCH /todos/:id', () => {
         request(app).patch(`/todos/123`)
             .expect(404)
             .end(done);
+    });
+});
+
+
+
+describe('GET /users/me', () => {
+    it('should return user if authenticated', (done) => {
+        var hexId = users[0]._id.toHexString();
+        var token = users[0].tokens[0].token;
+        request(app)
+            .get(`/users/me`)
+            .set('x-auth', token)  // ustawia header w request
+            .expect(200)
+            .expect((res) => {
+                expect(res.body._id).toBe(hexId);
+                expect(res.body.email).toBe(users[0].email);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
+    });
+    it('should return 401 if not authenticated', (done) => {
+        var token = users[0].tokens[0].token;
+        request(app)
+            .get(`/users/me`)
+            .set('x-auth', 'abcdef')  // ustawia header w request
+            .expect(401)
+            .expect((res) => {
+                expect(res.body).toEqual({});
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
+    });
+});
+
+describe('POST /user', () => {
+    it('should create a user', (done) => {
+        var email = 'exam@example.com';
+        var password = '12345Fs!';
+        request(app)
+            .post('/users')
+            .send({ email, password })
+            .expect(200)
+            .expect((res) => {
+                expect(res.header['x-auth']).toExist();
+                expect(res.body._id).toExist();
+                expect(res.body.email).toBe(email);
+            }).end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                User.findOne({ email }).then((user) => {
+                    expect(user).toExist();
+                    expect(user.password).toNotBe(password); // bo hasło z bazy jest hashowane. A hasło lokalne jest tekstowe
+                    done();
+                }).catch((err) => { done(err); });
+
+            });
+    });
+    it('should return validation errors if request invalid', (done) => {
+        var email = 'exam@example.com';
+        var password = '12';
+        request(app)
+            .post('/users')
+            .send({ email, password })
+            .expect(400)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                User.findOne({ email }).then((user) => {
+                    expect(user).toNotExist();
+                    done();
+                }).catch((err) => { done(err); });
+
+            });
+    });
+    it('should not create user if email in use', (done) => {
+        var email = users[0].email;
+        var password = users[0].password;
+        request(app)
+            .post('/users')
+            .send({ email, password })
+            .expect(400)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                done();
+            });
     });
 });
