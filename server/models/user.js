@@ -2,7 +2,9 @@ const mongoose = require('mongoose');  // http://mongoosejs.com/docs/guide.html
 const valid = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
-
+//
+const SECRETCODE = 'abc123'
+//
 var UserSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -35,6 +37,13 @@ var UserSchema = new mongoose.Schema({
         usePushEach: true
     });
 
+// "MySchema.methods"
+// to obiekt zawierający metody wywoływane na OBIEKTACH klasy "MySchema"
+// np. "user.<metoda>"
+// "MySchema.statics"
+// to obiekt zawierający metody wywoływane na KLASIE/MODELU "MySchema"
+// np. "User.<metoda>" 
+
 // rozwiązanie znalezione w dokumentacji:
 // http://mongoosejs.com/docs/api.html#document_Document-toObject
 // pozwala na transformację każdego obiektu podczas operacji "toJSON"
@@ -55,10 +64,10 @@ UserSchema.options.toJSON.transform = function (doc, ret, options) {
 //     return _.pick(userObject, ['_id', 'email']);
 // }
 
-UserSchema.methods.generateAuthToken = function () { 
+UserSchema.methods.generateAuthToken = function () {
     var user = this;
     var access = 'auth';
-    var token = jwt.sign({ _id: user._id.toHexString(), access }, 'abc123').toString();
+    var token = jwt.sign({ _id: user._id.toHexString(), access }, SECRETCODE).toString();
     user.tokens.push({ access, token });
     // zwracamy "Promise" z tej funkcji
     return user.save().then(() => {
@@ -67,6 +76,26 @@ UserSchema.methods.generateAuthToken = function () {
         console.log(err);
     }*/);
 
+};
+
+// "statics" oznacza że to będzie funkcja KLASY a nie OBJEKTU
+// Czyli wywołujemy ją jako "User.<funkcja>" (na klasie/modelu User) a nie jako "user.<funkcja" (na obiekcie klasy User)
+UserSchema.statics.findByToken = function (token) {
+    var User = this;  // bindujemy do KLASY/MODELU (User) a nie do objektu (user)
+    var decoded;  // undefined!
+    try {
+        decoded = jwt.verify(token, SECRETCODE);
+    } catch (err) {
+        // ponieważ "jwt.verify" wyrzuca błąd który łapiemy
+        // musimy zwrócić obietnicę która robi "reject()" bo skoro nie było tokena to nie można wykonywać dalszych operacji
+        return Promise.reject('Błąd tokena!');
+    }
+    // zwracamy "resolve obietnicę aby chainować. Wynikiem tej obietnicy będzie "user" bo to wynik "findOne"
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    });
 };
 
 var User = mongoose.model('User', UserSchema);

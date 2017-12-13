@@ -7,6 +7,7 @@ const { ObjectID } = require('mongodb');
 var { mongoose } = require('./db/mongoose.js');
 var { Todo } = require('./models/todo.js');
 var { User } = require('./models/user.js');
+var { authenticate } = require('./middleware/authenticate.js');
 
 var app = express();
 
@@ -138,8 +139,11 @@ app.post('/users', (req, res) => {
 
 });
 
-
-
+// "req.user" istnieje ponieważ w "authenticate" po sprawdzeniu tokena - odczytaliśmy usera i go spisaliśmy
+// w "req.user". Token jest w "req.token"
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 
 // poniższy kod uruchamia serwer TYLKO na "localhost" lub "127.0.0.1"
