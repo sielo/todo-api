@@ -14,8 +14,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch mongoose-remove",
-            "program": "${workspaceFolder}/playground\\mongoos-remove.js"
+            "name": "Launch hashing-jwt",
+            "program": "${workspaceFolder}/playground\\hashing-jwt.js"
         }
     ]
 }
