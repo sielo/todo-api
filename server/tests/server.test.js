@@ -230,7 +230,7 @@ describe('GET /users/me', () => {
     });
 });
 
-describe('POST /user', () => {
+describe('POST /users', () => {
     it('should create a user', (done) => {
         var email = 'exam@example.com';
         var password = '12345Fs!';
@@ -250,8 +250,7 @@ describe('POST /user', () => {
                     expect(user).toExist();
                     expect(user.password).toNotBe(password); // bo hasło z bazy jest hashowane. A hasło lokalne jest tekstowe
                     done();
-                }).catch((err) => { done(err); });
-
+                }).catch((err) => done(err));
             });
     });
     it('should return validation errors if request invalid', (done) => {
@@ -283,6 +282,54 @@ describe('POST /user', () => {
                 if (err) {
                     return done(err);
                 }
+                done();
+            });
+    });
+});
+
+describe('POST /user/login', () => {
+    it('should login a user', (done) => {
+        var email = users[1].email;
+        var password = users[1].password;
+        request(app)
+            .post('/users/login')
+            .send({ email, password })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.email).toBe(email);
+                expect(res.header['x-auth']).toExist();
+                //expect(res.body.tokens.length).toBe(1);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                User.findById(users[1]._id.toHexString()).then((user) => {
+                    expect(user.tokens[0]).toInclude({
+                        access: 'auth',
+                        token: res.headers['x-auth']
+                    });
+                }).catch((err) => done(err));
+                done();
+            });
+    });
+    it('should reject invalid login', (done) => {
+        var email = users[0].email;
+        var password = 'sdlksdjsd';
+        request(app)
+            .post('/users/login')
+            .send({ email, password })
+            .expect(400)
+            .expect((res) => {
+                expect(res.header['x-auth']).toNotExist();
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+                User.findById(users[1]._id.toHexString()).then((user) => {
+                    expect(user.tokens.length).toBe(0);
+                }).catch((err) => done(err));
                 done();
             });
     });

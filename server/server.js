@@ -2,6 +2,7 @@ require('./config/config.js');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcryptjs');
 const { ObjectID } = require('mongodb');
 // PRZYDATNE:  httpstatuses.com
 var { mongoose } = require('./db/mongoose.js');
@@ -143,6 +144,28 @@ app.post('/users', (req, res) => {
 // w "req.user". Token jest w "req.token"
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
+});
+
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+    User.findByCredentials(body.email, body.password).then((user) => {
+        // generujemy nowy TOKEN
+        user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
+        //res.header('x-auth', user.tokens[0].token).send(user);
+    }).catch((err) => {
+        res.status(400).send('Email or password incorrect!');
+    });
+});
+
+app.delete('/users/me/token', authenticate, (req, res) => {
+    var token = req.token;
+    req.user.removeToken(token).then(() => {
+        res.status(200).send('User logged out!');
+    }, () => {
+        res.status(400).send('Token not removed');
+    });
 });
 
 

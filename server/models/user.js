@@ -79,6 +79,19 @@ UserSchema.methods.generateAuthToken = function () {
 
 };
 
+UserSchema.methods.removeToken = function (tokn) {
+    var user = this;
+    return user.update({
+        // parametr $pull usuwa z tablicy "tokens" cały obiekt którego właściwość "token" ma wartość "tokn"
+        // i zapisuje "user" do bazy
+        $pull: {
+            tokens: {
+                token: tokn
+            }
+        }
+    });
+};
+
 // "statics" oznacza że to będzie funkcja KLASY a nie OBJEKTU
 // Czyli wywołujemy ją jako "User.<funkcja>" (na klasie/modelu User) a nie jako "user.<funkcja" (na obiekcie klasy User)
 UserSchema.statics.findByToken = function (token) {
@@ -98,6 +111,31 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access': 'auth'
     });
 };
+
+UserSchema.statics.findByCredentials = function (email, password) {
+    var User = this;  // bindujemy do KLASY/MODELU (User) a nie do objektu (user)
+    return User.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject('Invalid email or password');
+        }
+        // użytkownik jest to sprawdzamy czy hasło jest OK
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(password, user.password, (err, ok) => {
+                // ok = true / false
+                if (ok) {
+                    resolve(user);  // zwracamy "user" aby potem użyć to w "then(user) => .... "
+                } else {
+                    reject();
+                }
+            });
+        });
+
+    }).catch((err) => {
+        res.send('Invalid email or password:::' + err);
+    })
+};
+
+
 
 // definicja middleware w mongoose : http://mongoosejs.com/docs/middleware.html
 // Funkcja "pre" dodaje dla wskazanej operacji funkcję wykonywaną PRZED tą operacją
