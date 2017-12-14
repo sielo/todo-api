@@ -18,18 +18,24 @@ const users = [{
     _id: userTwoId,  // celowo generujemy TUTAJ aby użyć tego "_id" w testach /todos/:id
     email: 'jan@example.com',
     password: 'userTwoPass',
+    tokens: [{
+        access: 'auth',
+        token: jwt.sign({ _id: userTwoId, access: 'auth' }, SECRETCODE).toString()
+    }]
 }];
 
 // UWAGA! Jeśli generujemy ID przy tworzeniu rekordu w node to potem mongodb nie generuje już nowego ID
 const todos = [{
     _id: new ObjectID(),  // celowo generujemy TUTAJ aby użyć tego "_id" w testach /todos/:id
-    text: 'Pierwszy Todo'
+    text: 'Pierwszy Todo',
+    _creator: userOneId
 },
 {
     _id: new ObjectID(),
     text: 'Drugi Todo',
     completed: true,
-    completedAt: 12345
+    completedAt: 12345,
+    _creator: userTwoId
 }
 ];
 
